@@ -1,0 +1,159 @@
+Linux commands to demonstrate the usage of "grep" and "find"
+
+The find command in UNIX is a command line utility for file hierarchy. 
+It can be used to find files and directories and perform subsequent operations on them. 
+It supports searching by file types, folder, filename, creation date, modification date, owner and permissions. 
+By using the ‘-exec’ and 'grep' other UNIX commands can be executed on files or folders found.
+
+
+##Directory structure where I will be running the find commands
+
+[ec2-user@ip-172-31-33-0 ~]$ tree /home
+/home
+└── ec2-user
+    ├── demo
+    │   ├── test11.txt
+    │   ├── test16.txt
+    │   └── test18.txt
+    ├── sample
+    │   ├── test1
+    │   ├── test10
+    │   └── test12
+    ├── test2
+    ├── test7
+    ├── test8
+    └── test9
+
+3 directories, 10 files
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+
+## Syntax:
+find </dir/to/search/> <expression> <-options> <what to find>
+
+1. Search using filename or filename pattern
+
+[ec2-user@ip-172-31-33-0 ~]$ find /home -name 'test*'
+/home/ec2-user/test7
+/home/ec2-user/test9
+/home/ec2-user/test2
+/home/ec2-user/test8
+/home/ec2-user/sample/test1
+/home/ec2-user/sample/test10
+/home/ec2-user/sample/test12
+/home/ec2-user/demo/test11.txt
+/home/ec2-user/demo/test16.txt
+/home/ec2-user/demo/test18.txt
+
+[ec2-user@ip-172-31-33-0 ~]$ find /home -name '*.txt'
+/home/ec2-user/demo/test11.txt
+/home/ec2-user/demo/test16.txt
+/home/ec2-user/demo/test18.txt
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+
+2. Find using filename and then delete with a confirmation
+[ec2-user@ip-172-31-33-0 ~]$ find /home -name '*.txt' -exec rm -i {} \;
+rm: remove regular file ‘/home/ec2-user/demo/test11.txt’? y
+rm: remove regular file ‘/home/ec2-user/demo/test16.txt’? n
+rm: remove regular file ‘/home/ec2-user/demo/test18.txt’? n
+[ec2-user@ip-172-31-33-0 ~]$ ll demo/
+total 8
+-rw-rw-r-- 1 ec2-user ec2-user 52 Mar 21 14:31 test16.txt
+-rw-rw-r-- 1 ec2-user ec2-user 52 Mar 21 14:31 test18.txt
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+3. Find files or directories that are empty
+
+[ec2-user@ip-172-31-33-0 ~]$ find /home -empty
+/home/ec2-user/test7
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+
+------------------------------------------------------------------
+## syntax:  grep [OPTIONS] PATTERN [FILE...]
+
+1. To view all the lines with a string; give the filename and string
+
+[ec2-user@ip-172-31-33-0 ~]$ grep  'string' /home/ec2-user/test2
+this is a file to search for a string - Hello a
+[ec2-user@ip-172-31-33-0 ~]$
+
+2. List all files in a directory containing a string  or pattern; Use -i for case-insensitive search
+
+[ec2-user@ip-172-31-33-0 ~]$ grep -r 'Hello World' /home/
+/home/ec2-user/demo/test16.txt:this is a file to search for a string - Hello Worl
+/home/ec2-user/demo/test18.txt:this is a file to search for a string - Hello Worl
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+[ec2-user@ip-172-31-33-0 ~]$ grep -r 'Hello !' /home/
+/home/ec2-user/test8:this is a file to search for a string - Hello !!
+
+[ec2-user@ip-172-31-33-0 ~]$ grep -r '!' /home/
+/home/ec2-user/test8:this is a file to search for a string - Hello !!
+/home/ec2-user/test9:this is a test file to search for a string - Hello Toronto !
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+3. To hide the filenames and display only the lines with matching string; use '-h' option to hide the filenames
+
+[ec2-user@ip-172-31-33-0 ~]$ grep -hr 'string' /home/
+this is a file to search for a string - Hello
+this is a test file to search for a string - Hello
+This is a test file to search for a string
+this is a file to search for a string - Hello World
+this is a file to search for a string - Hello World
+this is a file to search for a string - Hello !!
+this is a test file to search for a string - Hello Toronto !
+this is a file to search for a string - Hello a
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+4. To display only the filename and not the matching line - Use 'cut' with delimiter 
+## 'cut' command helps to separate output by using delimiters and field number; sample cut commands after grep
+
+[ec2-user@ip-172-31-33-0 ~]$ grep -r 'string' /home/ | cut -d ':' -f 1
+/home/ec2-user/sample/test10
+/home/ec2-user/sample/test12
+/home/ec2-user/sample/test1
+/home/ec2-user/demo/test16.txt
+/home/ec2-user/demo/test18.txt
+/home/ec2-user/test8
+/home/ec2-user/test9
+/home/ec2-user/test2
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+5. Copy the command output to a file (or create a file showing the list of files containing a string)
+[ec2-user@ip-172-31-33-0 ~]$ grep -r 'string' /home/ | cut -d ':' -f 1 >> search_result 
+[ec2-user@ip-172-31-33-0 ~]$
+[ec2-user@ip-172-31-33-0 ~]$ cat search_result 
+/home/ec2-user/sample/test10
+/home/ec2-user/sample/test12
+/home/ec2-user/sample/test1
+/home/ec2-user/demo/test16.txt
+/home/ec2-user/demo/test18.txt
+/home/ec2-user/test8
+/home/ec2-user/test9
+/home/ec2-user/test2
+[ec2-user@ip-172-31-33-0 ~]$ 
+
+[ec2-user@ip-172-31-33-0 ~]$ cat learn
+hello:world:learing:how:to:use:;cut:with:delimiters:test:100
+
+
+[ec2-user@ip-172-31-33-0 ~]$ cat learn | cut -d ':' -f 10  ##Delimiter is ':' and Field is 10, output will be the 10th string separated by delimiter
+test
+[ec2-user@ip-172-31-33-0 ~]$ cat learn | cut -d ';' -f 1   ##Delimiter is ';' Field is 1. output will be the first string separated by ';'
+hello:world:learing:how:to:use:
+[ec2-user@ip-172-31-33-0 ~]$ cat learn | cut -d ';' -f 2   ##Delimiter is ';' Field is 2. output will be the second string separated by ';'
+cut:with:delimiters:test:100
+[ec2-user@ip-172-31-33-0 ~]$ cat learn | cut -d ':' -f 11  ##Delimiter is ';' Field is 11. output will be the 11th string separated by ':'
+100
+
+[ec2-user@ip-172-31-33-0 ~]$ cat learn | cut -d ':' -f 2 >> learn_this ##Copy the output to a file
+[ec2-user@ip-172-31-33-0 ~]$ cat learn_this 
+world
+[ec2-user@ip-172-31-33-0 ~]$ cat learn | cut -d ';' -f 2 >> learn_this 
+[ec2-user@ip-172-31-33-0 ~]$ cat learn_this 
+world
+cut:with:delimiters:test:100
+[ec2-user@ip-172-31-33-0 ~]$ > learn_this   ##Empty the file
+
